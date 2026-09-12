@@ -1,0 +1,40 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ApiAgentService2
+    steps:
+      - name: Check out ApiAgentService2
+        uses: actions/checkout@v5
+        with:
+          path: ApiAgentService2
+
+      # pyproject.toml installs the operation package from ../ApiAgentService1,
+      # so check it out as a sibling directory.
+      - name: Check out ApiAgentService1
+        uses: actions/checkout@v5
+        with:
+          repository: prangunj23/ApiAgentService1
+          path: ApiAgentService1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: ApiAgentService2/uv.lock
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run tests
+        run: uv run pytest
