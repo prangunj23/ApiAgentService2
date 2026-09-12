@@ -1,0 +1,69 @@
+name: Impact agent
+
+on:
+  repository_dispatch:
+    types: [service1-changed]
+  workflow_dispatch:
+    inputs:
+      message:
+        description: Message from the ApiAgentService1 agent
+        required: true
+      before:
+        description: ApiAgentService1 commit before the change
+        required: true
+      after:
+        description: ApiAgentService1 commit after the change
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: impact-agent
+
+jobs:
+  assess-impact:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ApiAgentService2
+    steps:
+      - name: Check out ApiAgentService2
+        uses: actions/checkout@v5
+        with:
+          path: ApiAgentService2
+
+      # The agent diffs ApiAgentService1 and pyproject.toml installs it from ../ApiAgentService1.
+      - name: Check out ApiAgentService1
+        uses: actions/checkout@v5
+        with:
+          repository: prangunj23/ApiAgentService1
+          ref: ${{ github.event.client_payload.after || inputs.after }}
+          fetch-depth: 0
+          path: ApiAgentService1
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: ApiAgentService2/uv.lock
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Assess impact, open PR, and send email
+        run: uv run agent/impact_agent.py
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NIM_MODEL: ${{ vars.NIM_MODEL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EMAIL_TO: ${{ vars.EMAIL_TO }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          EMAIL_PROVIDER: ${{ vars.EMAIL_PROVIDER }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}

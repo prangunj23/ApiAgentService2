@@ -33,3 +33,42 @@ uv run pytest
 ```
 
 The tests mock the upstream service with `httpx.MockTransport`, so ApiAgentService1 doesn't need to be running.
+
+## Impact agent
+
+ApiAgentService1's change agent sends a `service1-changed` event whenever something is pushed to its `main` branch. That event starts [impact-agent.yml](.github/workflows/impact-agent.yml), which runs `agent/impact_agent.py`:
+
+1. An LLM on NVIDIA NIM reads the message and the ApiAgentService1 diff, and works out how they affect this repo's code.
+2. If this service is affected, the LLM suggests changes to `src/` and `tests/`. The agent applies them, runs the tests, and opens a PR on branch `agent/service1-<sha>`. If the tests fail, the PR is opened as a draft.
+3. The agent emails an update covering the impact, the PR link, and the test results.
+
+You can also start it by hand: go to the **Actions** tab, choose **Impact agent**, then **Run workflow**, and enter a message and two ApiAgentService1 commits.
+
+### Setup
+
+Add these under **Settings → Secrets and variables → Actions**:
+
+| Name | Type | Value |
+|------|------|-------|
+| `NVIDIA_API_KEY` | Secret | Your NVIDIA NIM API key |
+| `EMAIL_TO` | Variable | Recipient address. Separate several with commas. |
+| `EMAIL_PROVIDER` | Variable | `resend` (default) or `smtp` |
+| `EMAIL_FROM` | Variable | Optional sender. Default: `onboarding@resend.dev` for Resend, `SMTP_USERNAME` for SMTP |
+| `RESEND_API_KEY` | Secret | Needed for `resend` |
+| `SMTP_HOST`, `SMTP_PORT` | Variables | Needed for `smtp`, for example `smtp.gmail.com` and `587` |
+| `SMTP_USERNAME`, `SMTP_PASSWORD` | Secrets | Needed for `smtp`. For Gmail, use an app password. |
+| `NIM_MODEL` | Variable | Optional. Default: `deepseek-ai/deepseek-v4-pro-0813` |
+
+Then turn on **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**.
+
+Resend's test sender, `onboarding@resend.dev`, only delivers to the address you signed up to Resend with. To email other addresses, verify a domain in Resend.
+
+PRs the agent opens don't start `tests.yml`, because GitHub doesn't trigger workflows from actions taken with `GITHUB_TOKEN`. The agent runs the tests itself and puts the results in the PR description instead.
+
+### Try it locally
+
+A dry run applies and tests the suggested changes, then reverts them. It doesn't open a PR or send email.
+
+```sh
+NVIDIA_API_KEY=... uv run agent/impact_agent.py --dry-run --message "..." --before <service1 sha> --after <service1 sha>
+```
