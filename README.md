@@ -51,13 +51,13 @@ Add these under **Settings → Secrets and variables → Actions**:
 | Name | Type | Value |
 |------|------|-------|
 | `NVIDIA_API_KEY` | Secret | Your NVIDIA NIM API key |
-| `EMAIL_TO` | Variable | Recipient address. Separate several with commas. |
-| `EMAIL_PROVIDER` | Variable | `resend` (default) or `smtp` |
-| `EMAIL_FROM` | Variable | Optional sender. Default: `onboarding@resend.dev` for Resend, `SMTP_USERNAME` for SMTP |
+| `EMAIL_TO` | Secret or variable | Recipient address. Separate several with commas. As a secret, the address is hidden in the public run logs. |
+| `EMAIL_PROVIDER` | Variable or secret | `resend` (default) or `smtp` |
+| `EMAIL_FROM` | Variable or secret | Optional sender. Default: `onboarding@resend.dev` for Resend, `SMTP_USERNAME` for SMTP |
 | `RESEND_API_KEY` | Secret | Needed for `resend` |
-| `SMTP_HOST`, `SMTP_PORT` | Variables | Needed for `smtp`, for example `smtp.gmail.com` and `587` |
+| `SMTP_HOST`, `SMTP_PORT` | Variables or secrets | Needed for `smtp`, for example `smtp.gmail.com` and `587` |
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | Secrets | Needed for `smtp`. For Gmail, use an app password. |
-| `NIM_MODEL` | Variable | Optional. Default: `deepseek-ai/deepseek-v4-pro-0813` |
+| `NIM_MODEL` | Variable or secret | Optional. Default: `deepseek-ai/deepseek-v4-pro-0813` |
 
 Then turn on **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**.
 

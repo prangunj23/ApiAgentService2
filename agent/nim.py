@@ -19,8 +19,8 @@ def require_env(*names: str) -> None:
         raise SystemExit(
             f"Missing required setting(s): {', '.join(missing)}.\n"
             "Add them to this repository under Settings → Secrets and variables → Actions. "
-            "Check that each secret is a repository secret (not a variable or an environment secret) "
-            "and that the name matches exactly."
+            "API keys and tokens must go on the Secrets tab; other settings, like EMAIL_TO, can go on either tab. "
+            "Names must match exactly, and environment secrets aren't used."
         )
 
 

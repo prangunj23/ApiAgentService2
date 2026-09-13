@@ -55,15 +55,16 @@ jobs:
 
       - name: Assess impact, open PR, and send email
         run: uv run agent/impact_agent.py
+        # Keys and tokens must be secrets. Other settings work as either a variable or a secret.
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          NIM_MODEL: ${{ vars.NIM_MODEL }}
+          NIM_MODEL: ${{ vars.NIM_MODEL || secrets.NIM_MODEL }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          EMAIL_TO: ${{ vars.EMAIL_TO }}
-          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
-          EMAIL_PROVIDER: ${{ vars.EMAIL_PROVIDER }}
+          EMAIL_TO: ${{ vars.EMAIL_TO || secrets.EMAIL_TO }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM || secrets.EMAIL_FROM }}
+          EMAIL_PROVIDER: ${{ vars.EMAIL_PROVIDER || secrets.EMAIL_PROVIDER }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          SMTP_HOST: ${{ vars.SMTP_HOST }}
-          SMTP_PORT: ${{ vars.SMTP_PORT }}
-          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_HOST: ${{ vars.SMTP_HOST || secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ vars.SMTP_PORT || secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME || vars.SMTP_USERNAME }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
