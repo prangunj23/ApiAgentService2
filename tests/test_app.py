@@ -24,12 +24,12 @@ def test_compute_calls_operation():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == "/v1/operation/numeric_op"
         assert request.read() == b'{"a":2.0,"b":3.0}'
-        return httpx.Response(200, json={"result": 5.0})
+        return httpx.Response(200, json={"result": -1.0})
 
     use_upstream(handler)
     response = client.post("/compute", json={"a": 2, "b": 3})
     assert response.status_code == 200
-    assert response.json() == {"result": 5.0, "source": "operation"}
+    assert response.json() == {"result": -1.0, "source": "operation"}
 
 
 def test_compute_upstream_error_returns_502():
