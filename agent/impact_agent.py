@@ -18,8 +18,8 @@ from pathlib import Path
 import httpx
 import markdown
 
-from email_sender import send_email
-from nim import chat_json
+from email_sender import required_settings, send_email
+from nim import chat_json, require_env
 
 ROOT = Path(__file__).resolve().parent.parent
 SERVICE1 = Path(os.environ.get("SERVICE1_PATH") or ROOT.parent / "ApiAgentService1")
@@ -242,6 +242,10 @@ def main() -> None:
         "--dry-run", action="store_true", help="apply and test fixes, then revert; don't open a PR or send email"
     )
     args = parser.parse_args()
+    if args.dry_run:
+        require_env("NVIDIA_API_KEY")
+    else:
+        require_env("NVIDIA_API_KEY", "GITHUB_TOKEN", "EMAIL_TO", *required_settings())
 
     event = load_event(args)
     diff = service1_diff(event["before"], event["after"])
@@ -287,9 +291,7 @@ def main() -> None:
         print(f"[dry run] Email not sent.\nSubject: {subject}\n\n{email_markdown}")
         return
 
-    recipients = [address.strip() for address in os.environ.get("EMAIL_TO", "").split(",") if address.strip()]
-    if not recipients:
-        raise SystemExit("EMAIL_TO is not set; can't send the update email.")
+    recipients = [address.strip() for address in os.environ["EMAIL_TO"].split(",") if address.strip()]
     send_email(recipients, subject, email_markdown, markdown.markdown(email_markdown, extensions=["fenced_code"]))
     print(f"Emailed {', '.join(recipients)}: {subject}")
 

@@ -7,8 +7,26 @@ from email.message import EmailMessage
 import httpx
 
 
+PROVIDER_SETTINGS = {
+    "resend": ["RESEND_API_KEY"],
+    "smtp": ["SMTP_HOST"],
+}
+
+
+def email_provider() -> str:
+    return (os.environ.get("EMAIL_PROVIDER") or "resend").lower()
+
+
+def required_settings() -> list[str]:
+    """Settings the configured provider needs, so callers can check them before doing any work."""
+    provider = email_provider()
+    if provider not in PROVIDER_SETTINGS:
+        raise SystemExit(f"Unknown EMAIL_PROVIDER {provider!r}; use 'resend' or 'smtp'.")
+    return PROVIDER_SETTINGS[provider]
+
+
 def send_email(to: list[str], subject: str, text: str, html: str) -> None:
-    provider = (os.environ.get("EMAIL_PROVIDER") or "resend").lower()
+    provider = email_provider()
     if provider == "resend":
         _send_resend(to, subject, text, html)
     elif provider == "smtp":
@@ -20,7 +38,7 @@ def send_email(to: list[str], subject: str, text: str, html: str) -> None:
 def _send_resend(to: list[str], subject: str, text: str, html: str) -> None:
     response = httpx.post(
         "https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {os.environ['RESEND_API_KEY']}"},
+        headers={"Authorization": f"Bearer {os.environ['RESEND_API_KEY'].strip()}"},
         json={
             "from": os.environ.get("EMAIL_FROM") or "ApiAgentService2 Agent <onboarding@resend.dev>",
             "to": to,
