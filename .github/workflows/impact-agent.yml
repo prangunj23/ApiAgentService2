@@ -1,4 +1,4 @@
-name: Impact agent
+name: Service2 impact agent
 
 on:
   repository_dispatch:
@@ -23,7 +23,7 @@ concurrency:
   group: impact-agent
 
 jobs:
-  assess-impact:
+  service2-impact-agent:
     runs-on: ubuntu-latest
     defaults:
       run:

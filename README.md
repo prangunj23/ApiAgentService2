@@ -34,7 +34,7 @@ uv run pytest
 
 The tests mock the upstream service with `httpx.MockTransport`, so ApiAgentService1 doesn't need to be running.
 
-## Impact agent
+## Service2 impact agent
 
 ApiAgentService1's change agent sends a `service1-changed` event whenever something is pushed to its `main` branch. That event starts [impact-agent.yml](.github/workflows/impact-agent.yml), which runs `agent/impact_agent.py`:
 
@@ -42,7 +42,7 @@ ApiAgentService1's change agent sends a `service1-changed` event whenever someth
 2. If this service is affected, the LLM suggests changes to `src/` and `tests/`. The agent applies them, runs the tests, and opens a PR on branch `agent/service1-<sha>`. If the tests fail, the PR is opened as a draft.
 3. The agent emails an update covering the impact, the PR link, and the test results.
 
-You can also start it by hand: go to the **Actions** tab, choose **Impact agent**, then **Run workflow**, and enter a message and two ApiAgentService1 commits.
+You can also start it by hand: go to the **Actions** tab, choose **Service2 impact agent**, then **Run workflow**, and enter a message and two ApiAgentService1 commits.
 
 ### Setup
 
