@@ -24,12 +24,29 @@ def test_compute_calls_operation():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == "/v1/operation/numeric_op"
         assert request.read() == b'{"a":2.0,"b":3.0}'
-        return httpx.Response(200, json={"result": -1.0})
+        # Upstream now returns a + b (was a * b).
+        return httpx.Response(200, json={"result": 5.0})
 
     use_upstream(handler)
     response = client.post("/compute", json={"a": 2, "b": 3})
     assert response.status_code == 200
-    assert response.json() == {"result": -1.0, "source": "operation"}
+    assert response.json() == {"result": 5.0, "source": "operation"}
+
+
+def test_compute_matches_upstream_addition_semantics():
+    # Simulate the real upstream behavior (result = a + b) and verify
+    # /compute passes the sum through unchanged.
+    def handler(request: httpx.Request) -> httpx.Response:
+        payload = request.read()
+        import json
+
+        body = json.loads(payload)
+        return httpx.Response(200, json={"result": body["a"] + body["b"]})
+
+    use_upstream(handler)
+    response = client.post("/compute", json={"a": -1.5, "b": 4.25})
+    assert response.status_code == 200
+    assert response.json() == {"result": 2.75, "source": "operation"}
 
 
 def test_compute_upstream_error_returns_502():
