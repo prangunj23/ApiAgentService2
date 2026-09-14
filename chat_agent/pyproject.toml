@@ -1,0 +1,26 @@
+[project]
+name = "service2-agent"
+version = "0.1.0"
+description = "Chat agent for ApiAgentService2 (consumer)"
+requires-python = ">=3.13"
+dependencies = [
+    "agentkit",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.uv.sources]
+agentkit = { path = "../../ApiAgentKit", editable = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/service2_agent"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

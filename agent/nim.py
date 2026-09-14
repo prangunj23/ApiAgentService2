@@ -6,7 +6,7 @@ import openai
 from openai import OpenAI
 
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
-DEFAULT_MODEL = "deepseek-ai/deepseek-v4-pro-0813"
+DEFAULT_MODEL = "moonshotai/kimi-k3"
 
 
 def require_env(*names: str) -> None:

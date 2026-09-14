@@ -57,7 +57,7 @@ Add these under **Settings → Secrets and variables → Actions**:
 | `RESEND_API_KEY` | Secret | Needed for `resend` |
 | `SMTP_HOST`, `SMTP_PORT` | Variables or secrets | Needed for `smtp`, for example `smtp.gmail.com` and `587` |
 | `SMTP_USERNAME`, `SMTP_PASSWORD` | Secrets | Needed for `smtp`. For Gmail, use an app password. |
-| `NIM_MODEL` | Variable or secret | Optional. Default: `deepseek-ai/deepseek-v4-pro-0813` |
+| `NIM_MODEL` | Variable or secret | Optional. Default: `moonshotai/kimi-k3` |
 
 Then turn on **Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests**.
 
@@ -71,4 +71,29 @@ A dry run applies and tests the suggested changes, then reverts them. It doesn't
 
 ```sh
 NVIDIA_API_KEY=... uv run agent/impact_agent.py --dry-run --message "..." --before <service1 sha> --after <service1 sha>
+```
+
+## Chat agent
+
+`chat_agent/` holds a chat agent for this repo, built on agentkit (the ApiAgentKit repo). You talk to it in the ApiAgentUI app. It works in its own clones of both services under `~/.apiagent/service2/`. It can:
+- read both codebases
+- load an ApiAgentService1 change with `service1_change_context`, which reuses `agent/impact_agent.py`
+- edit `src/` and `tests/`
+- run the tests
+- open pull requests
+- email updates with `send_email`
+
+Every email is saved and shown in the UI. You approve pull requests and emails before they happen.
+
+```sh
+cd chat_agent
+cp .env.example .env   # add NVIDIA_API_KEY, GITHUB_TOKEN, EMAIL_TO, and email provider settings
+uv sync
+uv run pytest
+```
+
+To run it with the other agents, start from this repo's root:
+
+```sh
+uv run --project ../ApiAgentKit agentkit dev --registry ../ApiAgentUI/public/registry.json
 ```
