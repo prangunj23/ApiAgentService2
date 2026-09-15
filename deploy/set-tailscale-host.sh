@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Point this VM's services at its Tailscale address instead of the public interface.
+# Point this VM's services at its Tailscale address instead of the public interface, and
+# let tailnet traffic through the host firewall.
 #
 #   sudo ./set-tailscale-host.sh
 #
@@ -12,6 +13,7 @@ set -euo pipefail
 CONFIG_DIR="/etc/apiagent"
 API_ENV="$CONFIG_DIR/consumer.env"
 AGENT_ENV="$CONFIG_DIR/service2-agent.env"
+ZONE="tailnet"
 
 [[ $EUID -eq 0 ]] || { echo "Run with sudo." >&2; exit 1; }
 command -v tailscale >/dev/null || { echo "tailscale is not installed. See deploy/README.md." >&2; exit 1; }
@@ -35,6 +37,8 @@ set_key() {
     echo "  $key=$value"
 }
 
+API_PORT="$(grep -E '^PORT=' "$API_ENV" | cut -d= -f2 | tr -d ' ')"
+API_PORT="${API_PORT:-8002}"
 AGENT_PORT="$(grep -E '^AGENT_PORT=' "$AGENT_ENV" | cut -d= -f2 | tr -d ' ')"
 AGENT_PORT="${AGENT_PORT:-9002}"
 
@@ -44,6 +48,26 @@ set_key "$API_ENV" BIND_HOST "$IP"
 echo "$AGENT_ENV:"
 set_key "$AGENT_ENV" AGENT_HOST "$IP"
 set_key "$AGENT_ENV" ALLOWED_HOSTS "$NAME:$AGENT_PORT,$IP:$AGENT_PORT"
+
+# Oracle Linux runs firewalld, which admits only SSH. Tailscale traffic arrives on the
+# tailscale0 interface, so give that interface its own zone that opens just this VM's two
+# ports. The public interface stays in the default zone, closed. On an OS without
+# firewalld this step is skipped.
+if command -v firewall-cmd >/dev/null && systemctl is-active --quiet firewalld; then
+    echo
+    echo "firewalld: zone '$ZONE' on tailscale0, allowing $API_PORT/tcp and $AGENT_PORT/tcp"
+    if ! firewall-cmd --permanent --get-zones | tr ' ' '\n' | grep -qx "$ZONE"; then
+        firewall-cmd --permanent --new-zone="$ZONE" >/dev/null
+    fi
+    if ! firewall-cmd --permanent --zone="$ZONE" --query-interface=tailscale0 >/dev/null 2>&1; then
+        firewall-cmd --permanent --zone="$ZONE" --add-interface=tailscale0 >/dev/null
+    fi
+    for port in "$API_PORT" "$AGENT_PORT"; do
+        firewall-cmd --permanent --zone="$ZONE" --add-port="$port/tcp" >/dev/null 2>&1
+    done
+    firewall-cmd --reload >/dev/null
+    echo "  active: $(firewall-cmd --zone="$ZONE" --list-ports)"
+fi
 
 echo
 echo "Restarting."

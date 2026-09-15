@@ -20,6 +20,10 @@ TimeoutStopSec=30
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 Environment=UV_CACHE_DIR=/var/lib/apiagent/uv-cache
 Environment=GIT_TERMINAL_PROMPT=0
+# The Python 3.13 that bootstrap.sh installed. /opt is read-only to this service, so uv
+# reuses that interpreter for the agent's clones and never downloads a copy under /var/lib,
+# where SELinux would stop it running.
+Environment=UV_PYTHON_INSTALL_DIR=/opt/apiagent/python
 
 NoNewPrivileges=true
 PrivateTmp=true
