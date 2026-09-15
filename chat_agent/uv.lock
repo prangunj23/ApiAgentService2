@@ -5,7 +5,7 @@ requires-python = ">=3.13"
 [[package]]
 name = "agentkit"
 version = "0.1.0"
-source = { editable = "../../ApiAgentKit" }
+source = { directory = "vendor/agentkit" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
@@ -22,9 +22,6 @@ requires-dist = [
     { name = "openai", specifier = ">=1.40" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]
-
-[package.metadata.requires-dev]
-dev = [{ name = "pytest", specifier = ">=8" }]
 
 [[package]]
 name = "annotated-doc"
@@ -498,7 +495,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "agentkit", editable = "../../ApiAgentKit" }]
+requires-dist = [{ name = "agentkit", directory = "vendor/agentkit" }]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8" }]

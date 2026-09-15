@@ -1,6 +1,6 @@
 # consumer (ApiAgentService2)
 
-A downstream service that calls the `operation` service (ApiAgentService1). It uses the typed client `operation.OperationClient`, which it installs from `../ApiAgentService1` as an editable path dependency.
+A downstream service that calls the `operation` service (ApiAgentService1) over HTTP. This repo builds and deploys on its own: it does not install ApiAgentService1 as a package. [`src/consumer/operation_client.py`](src/consumer/operation_client.py) holds this repo's own copy of the upstream contract — the request and response models and a typed client. When ApiAgentService1 changes that contract, this file has to change with it, which is what the impact agent below is for.
 
 ## Run
 
@@ -75,7 +75,7 @@ NVIDIA_API_KEY=... uv run agent/impact_agent.py --dry-run --message "..." --befo
 
 ## Chat agent
 
-`chat_agent/` holds a chat agent for this repo, built on agentkit (the ApiAgentKit repo). You talk to it in the ApiAgentUI app. It works in its own clones of both services under `~/.apiagent/service2/`. It can:
+`chat_agent/` holds a chat agent for this repo, built on agentkit. A copy of agentkit is vendored at `chat_agent/vendor/agentkit/` and committed here, so this repo installs, tests, and deploys with nothing else checked out beside it. The copy is generated from the ApiAgentKit repo — change agentkit there and re-run its `scripts/sync_vendor.py`, never edit `vendor/` directly, because the next sync overwrites it. CI runs `vendor/check_vendor.py` to enforce that. You talk to the agent in the ApiAgentUI app. It works in its own clones of both services under `~/.apiagent/service2/`. It can:
 - read both codebases
 - load an ApiAgentService1 change with `service1_change_context`, which reuses `agent/impact_agent.py`
 - edit `src/` and `tests/`
@@ -92,8 +92,20 @@ uv sync
 uv run pytest
 ```
 
-To run it with the other agents, start from this repo's root:
+To run this agent on its own, from `chat_agent/`:
+
+```sh
+uv run agentkit serve service2_agent.spec:SPEC --port 9002
+```
+
+To run it alongside the other agents during development, from this repo's root (needs the sibling checkouts):
 
 ```sh
 uv run --project ../ApiAgentKit agentkit dev --registry ../ApiAgentUI/public/registry.json
 ```
+
+## Deploy
+
+This repo deploys to its own Oracle Always Free VM, with nothing else checked out beside it. `deploy/bootstrap.sh` provisions the VM and doubles as the deploy command; `consumer.service` and `service2-agent.service` run the API and the chat agent. Both bind to Tailscale rather than the public interface, so no port is ever opened in OCI. `OPERATION_BASE_URL` points at ApiAgentService1's VM over the tailnet — the one link between the two services.
+
+See [deploy/README.md](deploy/README.md) for the runbook.

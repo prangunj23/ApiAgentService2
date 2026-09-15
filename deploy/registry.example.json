@@ -1,0 +1,12 @@
+[
+  {
+    "id": "service1",
+    "name": "Operation (Service1)",
+    "url": "http://apiagent-service1:9001"
+  },
+  {
+    "id": "service2",
+    "name": "Consumer (Service2)",
+    "url": "http://apiagent-service2:9002"
+  }
+]

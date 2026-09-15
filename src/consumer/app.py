@@ -6,7 +6,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 
 from consumer.config import OPERATION_BASE_URL
-from operation import OperationClient
+from consumer.operation_client import OperationClient
 
 app = FastAPI(title="consumer", version="0.1.0")
 

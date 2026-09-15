@@ -9,32 +9,43 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ApiAgentService2
     steps:
-      - name: Check out ApiAgentService2
-        uses: actions/checkout@v5
-        with:
-          path: ApiAgentService2
-
-      # pyproject.toml installs the operation package from ../ApiAgentService1,
-      # so check it out as a sibling directory.
-      - name: Check out ApiAgentService1
-        uses: actions/checkout@v5
-        with:
-          repository: prangunj23/ApiAgentService1
-          path: ApiAgentService1
+      - uses: actions/checkout@v5
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
           enable-cache: true
-          cache-dependency-glob: ApiAgentService2/uv.lock
 
       - name: Install dependencies
         run: uv sync --locked
+
+      - name: Run tests
+        run: uv run pytest
+
+  chat-agent:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: chat_agent
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: chat_agent/uv.lock
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      # vendor/agentkit is a copy of the ApiAgentKit repo, which isn't checked out here.
+      # This catches the copy being edited in place, which the next sync would overwrite.
+      - name: Check vendored agentkit
+        run: uv run vendor/check_vendor.py
 
       - name: Run tests
         run: uv run pytest

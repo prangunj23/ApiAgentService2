@@ -1,0 +1,38 @@
+[Unit]
+Description=Service2 chat agent (agentkit)
+Documentation=https://github.com/prangunj23/ApiAgentService2
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=apiagent
+Group=apiagent
+WorkingDirectory=/opt/apiagent/ApiAgentService2/chat_agent
+EnvironmentFile=/etc/apiagent/service2-agent.env
+ExecStart=/opt/apiagent/ApiAgentService2/chat_agent/.venv/bin/agentkit serve service2_agent.spec:SPEC --port ${AGENT_PORT}
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+
+# The agent shells out to git and uv inside its own clones under AGENT_HOME, so it needs
+# both on PATH and a writable state directory. uv also needs a cache it may write to.
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=UV_CACHE_DIR=/var/lib/apiagent/uv-cache
+Environment=GIT_TERMINAL_PROMPT=0
+
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/apiagent
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

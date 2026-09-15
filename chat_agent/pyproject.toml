@@ -13,7 +13,9 @@ dev = [
 ]
 
 [tool.uv.sources]
-agentkit = { path = "../../ApiAgentKit", editable = true }
+# agentkit is vendored into this repo so the service deploys on its own. It is synced from the
+# ApiAgentKit repo by that repo's scripts/sync_vendor.py; change agentkit there, not in vendor/.
+agentkit = { path = "vendor/agentkit" }
 
 [build-system]
 requires = ["hatchling"]

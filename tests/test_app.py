@@ -3,7 +3,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from consumer.app import app, get_operation_client
-from operation import OperationClient
+from consumer.operation_client import OperationClient
 
 
 def use_upstream(handler) -> None:
