@@ -23,7 +23,10 @@ IP="$(tailscale ip -4 2>/dev/null | head -n1)"
 
 # MagicDNS short name, e.g. apiagent-service2. This is the Host header the UI and the
 # other agent will send, so it has to be in ALLOWED_HOSTS or the agent answers 403.
-NAME="$(tailscale status --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | head -n1 | cut -d'"' -f4 | cut -d. -f1)"
+# Parse the JSON rather than grepping it: the output is pretty-printed ("DNSName": "..."),
+# so a pattern without the space never matched, and under pipefail that silently ended
+# the script. `|| true` keeps a failed lookup falling back to the hostname instead.
+NAME="$(tailscale status --json 2>/dev/null | python3 -c 'import json, sys; print(json.load(sys.stdin)["Self"]["DNSName"].split(".")[0])' 2>/dev/null || true)"
 NAME="${NAME:-$(hostname -s)}"
 
 # Replace KEY=... in place, or append it if the key is absent.
@@ -37,9 +40,9 @@ set_key() {
     echo "  $key=$value"
 }
 
-API_PORT="$(grep -E '^PORT=' "$API_ENV" | cut -d= -f2 | tr -d ' ')"
+API_PORT="$(grep -E '^PORT=' "$API_ENV" | cut -d= -f2 | tr -d ' ' || true)"
 API_PORT="${API_PORT:-8002}"
-AGENT_PORT="$(grep -E '^AGENT_PORT=' "$AGENT_ENV" | cut -d= -f2 | tr -d ' ')"
+AGENT_PORT="$(grep -E '^AGENT_PORT=' "$AGENT_ENV" | cut -d= -f2 | tr -d ' ' || true)"
 AGENT_PORT="${AGENT_PORT:-9002}"
 
 echo "Tailscale address $IP ($NAME)"
