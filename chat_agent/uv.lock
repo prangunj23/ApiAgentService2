@@ -5,7 +5,7 @@ requires-python = ">=3.13"
 [[package]]
 name = "agentkit"
 version = "0.1.0"
-source = { directory = "vendor/agentkit" }
+source = { editable = "vendor/agentkit" }
 dependencies = [
     { name = "fastapi" },
     { name = "httpx" },
@@ -495,7 +495,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "agentkit", directory = "vendor/agentkit" }]
+requires-dist = [{ name = "agentkit", editable = "vendor/agentkit" }]
 
 [package.metadata.requires-dev]
 dev = [{ name = "pytest", specifier = ">=8" }]

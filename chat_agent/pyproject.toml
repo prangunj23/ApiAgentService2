@@ -15,7 +15,9 @@ dev = [
 [tool.uv.sources]
 # agentkit is vendored into this repo so the service deploys on its own. It is synced from the
 # ApiAgentKit repo by that repo's scripts/sync_vendor.py; change agentkit there, not in vendor/.
-agentkit = { path = "vendor/agentkit" }
+# Editable, so the environment imports vendor/agentkit/src directly. A copied install of a local package
+# keeps its old code after a sync, because uv reuses the build while the version number is unchanged.
+agentkit = { path = "vendor/agentkit", editable = true }
 
 [build-system]
 requires = ["hatchling"]
