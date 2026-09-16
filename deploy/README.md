@@ -41,7 +41,7 @@ sudo bash bootstrap.sh
 # 3. Fill in the secrets it created.
 sudo nano /etc/apiagent/consumer.env             # OPERATION_BASE_URL -> the other VM
 sudo nano /etc/apiagent/service2-agent.env       # NVIDIA_API_KEY, GITHUB_TOKEN, AGENT_SHARED_TOKEN, email
-sudo nano /etc/apiagent/registry.json            # both agents' tailnet URLs
+# AGENT_REGISTRY already points at the registry the devs VM serves; see below.
 
 # 4. Bind to the tailnet, open the tailnet firewall zone, and start.
 sudo /opt/apiagent/ApiAgentService2/deploy/set-tailscale-host.sh
@@ -50,7 +50,9 @@ sudo systemctl start consumer service2-agent
 
 `OPERATION_BASE_URL` is the one link between the two services. Point it at ApiAgentService1's **API** port on the tailnet — `http://apiagent-service1:8001` — not its agent port.
 
-`AGENT_SHARED_TOKEN` must be the **same string on both VMs** — generate it once with `openssl rand -base64 32` — or the two agents answer each other with 401. `registry.json` must also be the same on both, listing each agent's tailnet URL.
+`AGENT_SHARED_TOKEN` must be the **same string on all three VMs** (both services and `apiagent-devs`) — generate it once with `openssl rand -base64 32` — or the agents answer each other with 401.
+
+The list of agents, `registry.json`, is owned by the onboarding service on `apiagent-devs` (see ApiAgentDevs' `deploy/README.md`), and this agent reads it from `http://apiagent-devs:9100/registry.json`. It keeps the last copy it loaded under `/var/lib/apiagent/<agent>/registry-cache.json`, so an outage of that VM doesn't cut it off. To run without the devs VM, set `AGENT_REGISTRY=/etc/apiagent/registry.json`, which `bootstrap.sh` installs as a fallback.
 
 ## What goes where
 
@@ -59,7 +61,7 @@ sudo systemctl start consumer service2-agent
 | `/opt/apiagent/ApiAgentService2/` | the checkout, owned by the `apiagent` user |
 | `/opt/apiagent/python/` | uv's Python 3.13 (Oracle Linux 9 ships 3.9) |
 | `/etc/apiagent/*.env` | secrets and settings, mode 0640, root-owned, never overwritten by a re-run |
-| `/etc/apiagent/registry.json` | the agent list both VMs share |
+| `/etc/apiagent/registry.json` | a fallback copy of the agent list, used only if `AGENT_REGISTRY` points at it |
 | `/var/lib/apiagent/service2/` | the agent's database, clones, research, memory |
 | `/var/lib/apiagent/uv-cache/` | uv's cache |
 

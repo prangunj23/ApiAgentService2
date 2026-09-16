@@ -23,9 +23,10 @@ def no_dependency_installs(monkeypatch):
 def test_info_describes_the_agent(tmp_path):
     info = TestClient(create_app(SPEC, make_settings(tmp_path), llm=FakeLLM())).get("/api/info").json()
     assert info["id"] == "service2"
-    assert info["features"] == ["emails"]
+    assert info["features"] == []
     tools = {tool["name"]: tool["needs_confirmation"] for tool in info["tools"]}
-    assert tools["send_email"] is True and tools["service1_change_context"] is False
+    # service2 reaches people only through service1, so it has no email tool.
+    assert "send_email" not in tools and tools["service1_change_context"] is False
 
 
 def test_service1_change_context_reuses_the_impact_agent(tmp_path):

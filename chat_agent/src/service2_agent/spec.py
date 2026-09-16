@@ -1,5 +1,4 @@
 from agentkit import AgentSpec, RepoRef
-from agentkit.tools.email import send_email
 
 from service2_agent.tools import service1_change_context
 
@@ -21,8 +20,10 @@ with the new ApiAgentService1 and keeps its tests meaningful and passing. Match 
 don't change ApiAgentService2's own API unless it is unavoidable. Run the tests, then open a pull request,
 as a draft if the tests fail.
 
-Use send_email to update the maintainer: what changed in ApiAgentService1, how it affects ApiAgentService2,
-and the recommended next steps."""
+You don't contact people directly. When a change in ApiAgentService1 affects this service, tell the
+service1 agent with message_agent: what changed, how it affects ApiAgentService2, how serious it is, and
+the recommended next steps, with a link to any pull request you opened. The service1 agent passes it on
+to the developers who own it."""
 
 SPEC = AgentSpec(
     id="service2",
@@ -31,6 +32,5 @@ SPEC = AgentSpec(
     repo=RepoRef("prangunj23/ApiAgentService2"),
     reads=[RepoRef("prangunj23/ApiAgentService1")],
     system_prompt=PROMPT,
-    tools=[service1_change_context, send_email],
-    features={"emails"},
+    tools=[service1_change_context],
 )

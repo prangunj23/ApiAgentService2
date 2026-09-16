@@ -136,7 +136,7 @@ else
 Installed but not started. Next:
 
   1. sudo nano $CONFIG_DIR/$AGENT_UNIT.env     # NVIDIA_API_KEY, GITHUB_TOKEN, AGENT_SHARED_TOKEN
-  2. sudo nano $CONFIG_DIR/registry.json       # both agents' Tailscale URLs
+  2. check AGENT_REGISTRY in that file: the devs VM serves registry.json at http://apiagent-devs:9100
   3. sudo $APP_DIR/deploy/set-tailscale-host.sh   # bind to the tailnet, open its firewall zone
   4. sudo systemctl start $API_UNIT $AGENT_UNIT
 
