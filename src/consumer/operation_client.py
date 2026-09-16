@@ -3,6 +3,9 @@
 ApiAgentService2 deploys on its own, so it does not install ApiAgentService1 as a package.
 The models and client here mirror the `/v1/operation` contract that ApiAgentService1 publishes.
 When that contract changes upstream, this file has to change with it.
+
+Note: upstream `numeric_op` currently computes `result = a - b` (subtraction),
+not a sum. The schema is unchanged; only the semantics changed.
 """
 
 import httpx
